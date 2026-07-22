@@ -1,6 +1,49 @@
 # Release notes
 
 
+### Version 4.22.0 (22-07-2026)
+
+* clean-up code in Qt event loop by @bdieterm in https://github.com/pyzo/pyzo/pull/1247
+* fix auto-closing quotes at the end of comments by @bdieterm in https://github.com/pyzo/pyzo/pull/1249
+* remove unused parameter "tabWidth" from default config by @bdieterm in https://github.com/pyzo/pyzo/pull/1252
+* fix typos in comments by @bdieterm in https://github.com/pyzo/pyzo/pull/1253
+* add workaround for running Pyzo in Termux on Android OS by @bdieterm in https://github.com/pyzo/pyzo/pull/1255
+* set default shortcut for stopping debugging to Ctrl+Shift+P by @bdieterm in https://github.com/pyzo/pyzo/pull/1256
+* add initial version of CONTRIBUTING.md by @bdieterm in https://github.com/pyzo/pyzo/pull/1257
+* add post-mortem debugging for chained exceptions by @bdieterm in https://github.com/pyzo/pyzo/pull/1258
+* prevent continuation of code execution when stopping the debugger by @bdieterm in https://github.com/pyzo/pyzo/pull/1259
+* allow tabswitching via Ctrl+Tab when editor search has focus by @bdieterm in https://github.com/pyzo/pyzo/pull/1260
+* fix shell action "change current directory to editor file path" by @bdieterm in https://github.com/pyzo/pyzo/pull/1261
+* rework autocompletion delay for avoiding unnecessary introspections by @bdieterm in https://github.com/pyzo/pyzo/pull/1262
+* fix/rework GUI-integration event loop for Tk by @bdieterm in https://github.com/pyzo/pyzo/pull/1263
+* clean-up code by @bdieterm in https://github.com/pyzo/pyzo/pull/1264
+* fix Qt enum constant for PyQt6 by @bdieterm in https://github.com/pyzo/pyzo/pull/1266
+* prevent deletion of prompt and output lines in shell by @bdieterm in https://github.com/pyzo/pyzo/pull/1268
+* allow doing introspection only in the kernel's main thread by @bdieterm in https://github.com/pyzo/pyzo/pull/1269
+* remove class left in global namespace by @bdieterm in https://github.com/pyzo/pyzo/pull/1270
+* fix document path in title bar when executing main file as script by @bdieterm in https://github.com/pyzo/pyzo/pull/1271
+* keep selection in autocompletion list when pressing the Shift key by @bdieterm in https://github.com/pyzo/pyzo/pull/1272
+* support keys PageUp/Down and Home/End for navigating autocomp list by @bdieterm in https://github.com/pyzo/pyzo/pull/1273
+* keep introspection working even with redefined str, repr, dir, ... by @bdieterm in https://github.com/pyzo/pyzo/pull/1274
+* improve performance when introspecting large objects by @bdieterm in https://github.com/pyzo/pyzo/pull/1275
+* fix _getSignature method by @bdieterm in https://github.com/pyzo/pyzo/pull/1276
+* leave Expression viewer edit mode when ESC is pressed by @bdieterm in https://github.com/pyzo/pyzo/pull/1277
+* add code snippet walk_files by @bdieterm in https://github.com/pyzo/pyzo/pull/1278
+* remove unused entries from default config by @bdieterm in https://github.com/pyzo/pyzo/pull/1279
+* update CI and CD workflow to use/include Python 3.14 by @bdieterm in https://github.com/pyzo/pyzo/pull/1280
+* remove outdated codeeditor documentation stub by @bdieterm in https://github.com/pyzo/pyzo/pull/1281
+* do not add pathsep at start or end of PYTHONPATH by @bdieterm in https://github.com/pyzo/pyzo/pull/1282
+* implement frame switching for (externally started) shells by @bdieterm in https://github.com/pyzo/pyzo/pull/1284
+* implement cursor deflection behavior for up/down keys in editor by @bdieterm in https://github.com/pyzo/pyzo/pull/1285
+* reverse frame index for frame switching by @bdieterm in https://github.com/pyzo/pyzo/pull/1286
+* fix partial loss of syntax highlighting in shell after kernel restart by @bdieterm in https://github.com/pyzo/pyzo/pull/1288
+* rework keyboard navigation for autocompletion list by @bdieterm in https://github.com/pyzo/pyzo/pull/1289
+* rework autocompletion workaround for Wayland by @bdieterm in https://github.com/pyzo/pyzo/pull/1290
+* implement tab closing in history list via DEL key and middle mousebtn by @bdieterm in https://github.com/pyzo/pyzo/pull/1291
+* add optional dialog to confirm closing the Pyzo application by @bdieterm in https://github.com/pyzo/pyzo/pull/1293
+* Fix that on MacOS the dock icon is blurry by @almarklein in https://github.com/pyzo/pyzo/pull/1246
+
+
 ### Version 4.21.0 (09-02-2026)
 
 * add Snippets tool by @bdieterm in https://github.com/pyzo/pyzo/pull/1202
