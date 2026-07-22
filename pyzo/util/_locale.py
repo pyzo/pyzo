@@ -26,7 +26,7 @@ LANGUAGES = {
     "French": L.French,
     "German": L.German,
     "Italian": L.Italian,
-    "Russian": L.Russian,  # not updated for 3.4
+    "Russian": L.Russian,
     "Polish": L.Polish,
     "Portuguese": L.Portuguese,
     "Portuguese (BR)": (L.Portuguese, QLocale.Country.Brazil),
@@ -136,7 +136,7 @@ def setLanguage(languageName):
 
 class Translation(str):
     """Derives from str class. The translate function returns an instance
-    of this class and assigns extra atrributes:
+    of this class and assigns extra attributes:
       * original: the original text passed to the translation
       * tt: the tooltip text
       * key: the original text without tooltip (used by menus as a key)
@@ -179,20 +179,20 @@ def translate(context, text, disambiguation=None):
 import subprocess
 
 LHELP = """
-Language help - info for translaters
+Language help - info for translators
 
 For translating, you will need a set of working Qt language tools:
 pyside-lupdate, linguist, lrelease. On Windows, these should come
 with your PySide installation. On (Ubuntu) Linux, you can install
-these with 'sudo apt-get install pyside-tools qt4-dev-tools'.
+these with 'sudo apt-get install pyside6-tools qt6-tools-dev-tools'.
 
 You also need to run pyzo from source as checked out from the repo
 (e.g. by running pyzolauncher.py).
 
 To create a new language:
-  * the file 'pyzo/util/locale.py' should be edited to add the language
+  * the file 'pyzo/util/_locale.py' should be edited to add the language
     to the LANGUAGES dict
-  * run 'linguist(your_lang)', this will raise an erro, but it will show
+  * run 'linguist(your_lang)', this will raise an error, but it will show
     the name of the .ts file
   * the file 'pyzo/pyzo.pro' should be edited to include the new .ts file
   * run 'lupdate()' to create the .ts file
@@ -228,11 +228,11 @@ def linguist(languageName):
     if not os.path.isfile(filename):
         raise ValueError("Could not find {}".format(filename))
 
-    # PyQt5 does not come with linguist anymore? Install PySide2 and check the
-    # pyside2 package directory for the linguist exe ...
+    # PyQt5 does not come with linguist anymore? Install PySide6 and check the
+    # pyside6 package directory for the linguist exe ...
 
     # Get Command for linguist
-    qtcore_mod_name = pyzo.QtCore.QObject.__module__
+    qtcore_mod_name = QtCore.QObject.__module__
     qtcore_mod_path = sys.modules[qtcore_mod_name].__file__
     pysideDir = os.path.abspath(os.path.dirname(qtcore_mod_path))
     print(pysideDir)
@@ -259,9 +259,9 @@ def lupdate():
         )
 
     # Get Command for python lupdate
-    pysideDir = os.path.abspath(os.path.dirname(pyzo.QtCore.__file__))
+    pysideDir = os.path.abspath(os.path.dirname(QtCore.__file__))
     ISWIN = sys.platform.startswith("win")
-    exe_ = "pylupdate" + pyzo.QtCore.__version__[0] + ".exe" * ISWIN
+    exe_ = "pylupdate" + QtCore.__version__[0] + ".exe" * ISWIN
     exe = os.path.join(pysideDir, exe_)
     if not os.path.isfile(exe):
         exe = exe_
@@ -287,13 +287,13 @@ def lrelease():
     filename = os.path.realpath(os.path.join(pyzo.pyzoDir, "..", fname))
     if not os.path.isfile(filename):
         raise ValueError(
-            "Could not find {}. This function must run from the source repo.".format(
+            "Could not find {}. This function must be run from the source repo.".format(
                 fname
             )
         )
 
     # Get Command for lrelease
-    pysideDir = os.path.abspath(os.path.dirname(pyzo.QtCore.__file__))
+    pysideDir = os.path.abspath(os.path.dirname(QtCore.__file__))
     ISWIN = sys.platform.startswith("win")
     exe_ = "lrelease" + ".exe" * ISWIN
     exe = os.path.join(pysideDir, exe_)

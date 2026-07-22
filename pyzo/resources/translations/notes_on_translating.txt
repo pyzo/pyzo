@@ -4,7 +4,7 @@ Notes on translating
 In short
 --------
 
-Apply the following steps (in the IEP logger shell):
+Apply the following steps (in the Pyzo logger shell):
   
   * Run lupdate() to update .ts files
   * Translators run linguist(TheirLanguage) to launch Qt linguist 
@@ -15,15 +15,15 @@ Apply the following steps (in the IEP logger shell):
 Alternatively, you can invoke the tools from a system shell (with
 this directory as working directory):
 
-  * Run pylupdate5 -noobsolete -verbose ../../../pyzo.pro
+  * Run pylupdate6 -noobsolete -verbose ../../../pyzo.pro
   * Use linguist or a plain text editor to edit .ts files
   * Run lrelease ../../../pyzo.pro
 
 The lupdate tool parses the source code of the files specified 
-in iep.pro and detects usages of any "translate()" function call.
+in pyzo.pro and detects usages of any "translate()" function call.
 
 
-For translaters
+For translators
 ---------------
 
 We send translaters a .ts file, which they translate using Qt linguist
@@ -33,18 +33,18 @@ and then send back to us.
 About tooltips
 --------------
 
-I like tooltips. And I think its best to specify them in the same string
-as the text/label that they apply to. In IEP we use the convention that
+I like tooltips. And I think it is best to specify them in the same string
+as the text/label that they apply to. In Pyzo we use the convention that
 a translation string can contain tooltips by writing three colons followed
 by the tooltip text: ``"This is a label ::: This is the tooltip text"``
 
-The iep.translate function returns a string object that contains only
+The pyzo.translate function returns a string object that contains only
 the label text, but which has an attribute called "tt" that contains
 the tooltip text (or an empty string).
 
 In this way, in places where you do not need a tooltip, things behave as
 normal. In cases where you need a tooltip, things are now easier (especially
-for the translater).
+for the translator).
 
 
 From the PyQt website
