@@ -4,7 +4,7 @@ Portuguese, Brazilian Portuguese, Russian, Traditional Chinese,
 Simplified Chinese, Italian.
 
 For the translations we make use of Qt's translation system. To update
-a translation, run Qt linguist on any of the `.tr` files
+a translation, run Qt linguist on any of the `.ts` files
 [here](https://github.com/pyzo/pyzo/tree/main/pyzo/resources/translations).
 Then submit the result, preferably via a Github pull request (but
 emailing it to me is fine too).
@@ -14,7 +14,7 @@ text from a more detailed text that will be shown in the tooltip, e.g.
 "open :: open a new file".
 
 If you want to add translations for a new language, send me an email
-or make an issue so that I can create the appropriate `.tr` file.
+or make an issue so that I can create the appropriate `.ts` file.
 
 There are also many text that are not yet translatable, you can also
 help by modifying the code such that these strings are passed through

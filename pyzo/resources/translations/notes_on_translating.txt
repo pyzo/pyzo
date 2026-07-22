@@ -6,17 +6,17 @@ In short
 
 Apply the following steps (in the IEP logger shell):
   
-  * Run lupdate() to update .tr files
+  * Run lupdate() to update .ts files
   * Translators run linguist(TheirLanguage) to launch Qt linguist 
-  * Translators write translations (stored in one .tr file per language)
-  * Translators send modified version of .tr file back to us
+  * Translators write translations (stored in one .ts file per language)
+  * Translators send modified version of .ts file back to us
   * Run lrelease()
   
 Alternatively, you can invoke the tools from a system shell (with
 this directory as working directory):
 
   * Run pylupdate5 -noobsolete -verbose ../../../pyzo.pro
-  * Use linguist or a plain text editor to edit .tr files
+  * Use linguist or a plain text editor to edit .ts files
   * Run lrelease ../../../pyzo.pro
 
 The lupdate tool parses the source code of the files specified 
@@ -26,7 +26,7 @@ in iep.pro and detects usages of any "translate()" function call.
 For translaters
 ---------------
 
-We send translaters a .tr file, which they translate using Qt linguist
+We send translaters a .ts file, which they translate using Qt linguist
 and then send back to us.
 
 

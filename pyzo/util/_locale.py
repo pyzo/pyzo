@@ -13,7 +13,7 @@ QLocale = QtCore.QLocale
 
 # Define supported languages. The key defines the name as shown to the
 # user. The value is passed to create a Locale object. From the local
-# object we obtain the name for the .tr file.
+# object we obtain the name for the .ts file.
 # Chinese:
 L = QLocale.Language
 LANGUAGES = {
@@ -35,7 +35,7 @@ LANGUAGES = {
         L.Chinese,
         QLocale.Country.Taiwan,
     ),  # https://bugreports.qt.io/browse/QTBUG-1573
-    # Languages for which the is a .tr file, but no translations available yet:
+    # Languages for which the is a .ts file, but no translations available yet:
     # 'Slovak': L.Slovak,
 }
 
@@ -100,7 +100,7 @@ def setLanguage(languageName):
     pyzoTransPath = os.path.join(pyzo.pyzoDir, "resources", "translations")
 
     # Get possible names for language files
-    # (because Qt's .tr files may not have the language component.)
+    # (because Qt's .ts files may not have the language component.)
     localeName1 = locale.name()
     localeName2 = localeName1.split("_")[0]
 
@@ -121,7 +121,7 @@ def setLanguage(languageName):
         trans = QtCore.QTranslator()
         # Try loading both names
         for localeName in [localeName1, localeName2]:
-            success = trans.load(what + "_" + localeName + ".tr", where)
+            success = trans.load(what + "_" + localeName + ".ts", where)
             if success:
                 QtWidgets.QApplication.installTranslator(trans)
                 QtCore._translators.append(trans)
@@ -193,10 +193,10 @@ To create a new language:
   * the file 'pyzo/util/locale.py' should be edited to add the language
     to the LANGUAGES dict
   * run 'linguist(your_lang)', this will raise an erro, but it will show
-    the name of the .tr file
-  * the file 'pyzo/pyzo.pro' should be edited to include the new .tr file
-  * run 'lupdate()' to create the .tr file
-  * run 'linguist(your_lang)' again to initialize the .tr file.
+    the name of the .ts file
+  * the file 'pyzo/pyzo.pro' should be edited to include the new .ts file
+  * run 'lupdate()' to create the .ts file
+  * run 'linguist(your_lang)' again to initialize the .ts file.
 
 To update a language:
   * run 'lupdate()'
@@ -223,7 +223,7 @@ def linguist(languageName):
     locale = getLocale(languageName)
 
     # Get file to open
-    fname = "pyzo_{}.tr".format(locale.name())
+    fname = "pyzo_{}.ts".format(locale.name())
     filename = os.path.join(pyzo.pyzoDir, "resources", "translations", fname)
     if not os.path.isfile(filename):
         raise ValueError("Could not find {}".format(filename))
@@ -247,7 +247,7 @@ def linguist(languageName):
 
 
 def lupdate():
-    """For developers. From pyzo.pro create the .tr files"""
+    """For developers. From pyzo.pro create the .ts files"""
     # Get file to open
     fname = "pyzo.pro"
     filename = os.path.realpath(os.path.join(pyzo.pyzoDir, "..", fname))
@@ -281,7 +281,7 @@ def lupdate():
 
 
 def lrelease():
-    """For developers. From pyzo.pro and the .tr files, create the .qm files."""
+    """For developers. From pyzo.pro and the .ts files, create the .qm files."""
     # Get file to open
     fname = "pyzo.pro"
     filename = os.path.realpath(os.path.join(pyzo.pyzoDir, "..", fname))
@@ -319,5 +319,5 @@ if __name__ == "__main__":
 
     print("Language data files:")
     for key in LANGUAGES:
-        s = "{}: {}".format(key, getLocale(key).name() + ".tr")
+        s = "{}: {}".format(key, getLocale(key).name() + ".ts")
         print(s)
