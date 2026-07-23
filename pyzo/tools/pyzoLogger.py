@@ -67,9 +67,6 @@ class PyzoLoggerShell(BaseShell):
 
         # Create namespace for logger interpreter
         locals = {"pyzo": pyzo, "sys": sys, "os": os}
-        # Include linguist tools
-        for name in ["linguist", "lrelease", "lupdate", "lhelp"]:
-            locals[name] = getattr(pyzo.util._locale, name)
 
         # Create interpreter to run code
         self._interpreter = code.InteractiveConsole(locals, "<logger>")

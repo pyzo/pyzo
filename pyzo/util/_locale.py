@@ -3,8 +3,6 @@ Module for locale stuff like language and translations.
 """
 
 import os
-import sys
-import time
 
 import pyzo
 from pyzo.qt import QtCore, QtWidgets
@@ -14,7 +12,6 @@ QLocale = QtCore.QLocale
 # Define supported languages. The key defines the name as shown to the
 # user. The value is passed to create a Locale object. From the local
 # object we obtain the name for the .ts file.
-# Chinese:
 L = QLocale.Language
 LANGUAGES = {
     "English (US)": L.C,
@@ -36,7 +33,7 @@ LANGUAGES = {
         QLocale.Country.Taiwan,
     ),  # https://bugreports.qt.io/browse/QTBUG-1573
     # Languages for which the is a .ts file, but no translations available yet:
-    # 'Slovak': L.Slovak,
+    # "Slovak": L.Slovak,
 }
 
 
@@ -48,6 +45,7 @@ LANGUAGE_SYNONYMS = {
     "de_DE": "German",
     "es_ES": "Spanish",
     "fr_FR": "French",
+    "it_IT": "Italian",
     "nl_NL": "Dutch",
     "pl_PL": "Polish",
     "pt_BR": "Portuguese (BR)",
@@ -100,7 +98,7 @@ def setLanguage(languageName):
     pyzoTransPath = os.path.join(pyzo.pyzoDir, "resources", "translations")
 
     # Get possible names for language files
-    # (because Qt's .ts files may not have the language component.)
+    # (because Qt's .ts files may not have the country component.)
     localeName1 = locale.name()
     localeName2 = localeName1.split("_")[0]
 
@@ -121,7 +119,7 @@ def setLanguage(languageName):
         trans = QtCore.QTranslator()
         # Try loading both names
         for localeName in [localeName1, localeName2]:
-            success = trans.load(what + "_" + localeName + ".ts", where)
+            success = trans.load(what + "_" + localeName + ".qm", where)
             if success:
                 QtWidgets.QApplication.installTranslator(trans)
                 QtCore._translators.append(trans)
@@ -173,145 +171,6 @@ def translate(context, text, disambiguation=None):
     translation.tt = tt
     translation.key = _splitMainAndTt(text)[0].strip()
     return translation
-
-
-## Development tools
-import subprocess
-
-LHELP = """
-Language help - info for translators
-
-For translating, you will need a set of working Qt language tools:
-pyside-lupdate, linguist, lrelease. On Windows, these should come
-with your PySide installation. On (Ubuntu) Linux, you can install
-these with 'sudo apt-get install pyside6-tools qt6-tools-dev-tools'.
-
-You also need to run pyzo from source as checked out from the repo
-(e.g. by running pyzolauncher.py).
-
-To create a new language:
-  * the file 'pyzo/util/_locale.py' should be edited to add the language
-    to the LANGUAGES dict
-  * run 'linguist(your_lang)', this will raise an error, but it will show
-    the name of the .ts file
-  * the file 'pyzo/pyzo.pro' should be edited to include the new .ts file
-  * run 'lupdate()' to create the .ts file
-  * run 'linguist(your_lang)' again to initialize the .ts file.
-
-To update a language:
-  * run 'lupdate()'
-  * run 'linguist(your_lang)'
-  * make all the translations and save
-  * run lrelease() and restart pyzo to see translations
-  * repeat if necessary
-
-"""
-
-
-def lhelp():
-    """Print help text on using the language tools."""
-    print(LHELP)
-
-
-def linguist(languageName):
-    """Open linguist with the language file as specified by lang.
-
-    The languageName can be one of the fields as visible in the language
-    list in the menu. This function is intended for translators.
-    """
-    # Get locale
-    locale = getLocale(languageName)
-
-    # Get file to open
-    fname = "pyzo_{}.ts".format(locale.name())
-    filename = os.path.join(pyzo.pyzoDir, "resources", "translations", fname)
-    if not os.path.isfile(filename):
-        raise ValueError("Could not find {}".format(filename))
-
-    # PyQt5 does not come with linguist anymore? Install PySide6 and check the
-    # pyside6 package directory for the linguist exe ...
-
-    # Get Command for linguist
-    qtcore_mod_name = QtCore.QObject.__module__
-    qtcore_mod_path = sys.modules[qtcore_mod_name].__file__
-    pysideDir = os.path.abspath(os.path.dirname(qtcore_mod_path))
-    print(pysideDir)
-    ISWIN = sys.platform.startswith("win")
-    exe_ = "linguist" + ".exe" * ISWIN
-    exe = os.path.join(pysideDir, exe_)
-    if not os.path.isfile(exe):
-        exe = exe_
-
-    # Spawn process
-    return subprocess.Popen([exe, filename])
-
-
-def lupdate():
-    """For developers. From pyzo.pro create the .ts files"""
-    # Get file to open
-    fname = "pyzo.pro"
-    filename = os.path.realpath(os.path.join(pyzo.pyzoDir, "..", fname))
-    if not os.path.isfile(filename):
-        raise ValueError(
-            "Could not find {}. This function must run from the source repo.".format(
-                fname
-            )
-        )
-
-    # Get Command for python lupdate
-    pysideDir = os.path.abspath(os.path.dirname(QtCore.__file__))
-    ISWIN = sys.platform.startswith("win")
-    exe_ = "pylupdate" + QtCore.__version__[0] + ".exe" * ISWIN
-    exe = os.path.join(pysideDir, exe_)
-    if not os.path.isfile(exe):
-        exe = exe_
-
-    # Spawn process
-    cmd = [exe, "-noobsolete", "-verbose", filename]
-    p = subprocess.Popen(
-        cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
-    while p.poll() is None:
-        time.sleep(0.1)
-    output = p.stdout.read().decode("utf-8")
-    if p.returncode:
-        raise RuntimeError("lupdate failed ({}): {}".format(p.returncode, output))
-    else:
-        print(output)
-
-
-def lrelease():
-    """For developers. From pyzo.pro and the .ts files, create the .qm files."""
-    # Get file to open
-    fname = "pyzo.pro"
-    filename = os.path.realpath(os.path.join(pyzo.pyzoDir, "..", fname))
-    if not os.path.isfile(filename):
-        raise ValueError(
-            "Could not find {}. This function must be run from the source repo.".format(
-                fname
-            )
-        )
-
-    # Get Command for lrelease
-    pysideDir = os.path.abspath(os.path.dirname(QtCore.__file__))
-    ISWIN = sys.platform.startswith("win")
-    exe_ = "lrelease" + ".exe" * ISWIN
-    exe = os.path.join(pysideDir, exe_)
-    if not os.path.isfile(exe):
-        exe = exe_
-
-    # Spawn process
-    cmd = [exe, filename]
-    p = subprocess.Popen(
-        cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
-    while p.poll() is None:
-        time.sleep(0.1)
-    output = p.stdout.read().decode("utf-8")
-    if p.returncode:
-        raise RuntimeError("lrelease failed ({}): {}".format(p.returncode, output))
-    else:
-        print(output)
 
 
 if __name__ == "__main__":
