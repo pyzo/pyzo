@@ -32,9 +32,9 @@ def open_directory_outside_pyzo(dirpath, filename=None):
         subprocess.call(("open", dirpath))
     elif sys.platform.startswith("win"):
         if filepath is not None:
-            subprocess.call('explorer.exe /select,"{}"'.format(filepath))
+            subprocess.call(["explorer.exe", "/select,", filepath])
         else:
-            subprocess.call('explorer.exe "{}"'.format(dirpath))
+            subprocess.call(["explorer.exe", dirpath])
     elif sys.platform.startswith("linux"):
         subprocess.call(("xdg-open", dirpath))
 
