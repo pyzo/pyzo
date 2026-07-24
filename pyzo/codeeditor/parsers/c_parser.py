@@ -13,8 +13,6 @@ from .tokens import (
     NumberToken,
 )
 
-# todo: compiler directives (or how do you call these things starting with #)
-
 
 class MultilineCommentToken(CommentToken):
     """Characters representing a multi-line comment."""
@@ -28,6 +26,12 @@ class CharToken(Token):
     defaultStyle = "fore:#7F007F"
 
 
+class PreprocessorToken(Token):
+    """Preprocessor directive line"""
+
+    defaultStyle = "fore:#800080"
+
+
 # This regexp is used to find special stuff, such as comments, numbers and
 # strings.
 tokenProg = re.compile(
@@ -37,7 +41,8 @@ tokenProg = re.compile(
     + "(//)|"  # Single line comment (group 2)
     + "(/\\*)|"  # Comment (group 3) or
     + "('\\\\?.')|"  # char (group 4)
-    + '(")'  # string (group 5)
+    + '(")|'  # string (group 5)
+    + r"^(\s*\#.*?$)"  # preprocessor directive (group 6)
 )
 
 
@@ -54,7 +59,48 @@ class CParser(Parser):
     """A C parser."""
 
     _extensions = [".c", ".h", ".cpp", "cxx", "hxx"]
-    _keywords = ["int", "const", "char", "void", "short", "long", "case"]
+    _keywords = [
+        "auto",
+        "bool",
+        "break",
+        "case",
+        "char",
+        "const",
+        "constexpr",
+        "continue",
+        "default",
+        "do",
+        "double",
+        "else",
+        "enum",
+        "extern",
+        "false",
+        "float",
+        "for",
+        "goto",
+        "if",
+        "inline",
+        "int",
+        "long",
+        "nullptr",
+        "register",
+        "restrict",
+        "return",
+        "short",
+        "signed",
+        "sizeof",
+        "static",
+        "struct",
+        "switch",
+        "true",
+        "typedef",
+        "typeof",
+        "union",
+        "unsigned",
+        "void",
+        "volatile",
+        "while",
+    ]
 
     def parseLine(self, line, previousState=0):
         """Parses a line of C code, returning a list of tokens."""
@@ -192,9 +238,10 @@ class CParser(Parser):
             tokens.append(MultilineCommentToken(line, match.start(), match.end()))
         elif match.group(4) is not None:  # Char
             tokens.append(CharToken(line, match.start(), match.end()))
-        else:
-            # We have matched a string-start
+        elif match.group(5) is not None:  # string-start
             tokens.append(StringToken(line, match.start(), match.end()))
+        else:
+            tokens.append(PreprocessorToken(line, match.start(), match.end()))
 
         # Done
         return tokens
