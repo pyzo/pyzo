@@ -1255,9 +1255,9 @@ class EditorTabs(QtWidgets.QWidget):
 
         # show dialog
         msg = translate("editorTabs", "Select one or more files to open")
-        filter = "Python (*.py *.pyw);;"
+        filter = "Python (*.py *.pyw *.FCMacro);;"
         filter += "Pyrex (*.pyi *.pyx *.pxd);;"
-        filter += "C (*.c *.h *.cpp *.c++);;"
+        filter += "C (*.c *.h *.cpp *.c++ *.ino);;"  # ino ... Arduino .c file
         # filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
         filter += "All (*)"
         if True:
@@ -1504,9 +1504,9 @@ class EditorTabs(QtWidgets.QWidget):
 
         # show dialog
         msg = translate("editorTabs", "Select the file to save to")
-        filter = "Python (*.py *.pyw);;"
+        filter = "Python (*.py *.pyw *.FCMacro);;"
         filter += "Pyrex (*.pyi *.pyx *.pxd);;"
-        filter += "C (*.c *.h *.cpp);;"
+        filter += "C (*.c *.h *.cpp *.ino);;"
         # filter += "Py+Cy+C (*.py *.pyw *.pyi *.pyx *.pxd *.c *.h *.cpp);;"
         filter += "All (*.*)"
         if startfilename is None:

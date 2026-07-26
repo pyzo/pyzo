@@ -58,7 +58,7 @@ commentEndProg = re.compile(r"\*/")
 class CParser(Parser):
     """A C parser."""
 
-    _extensions = [".c", ".h", ".cpp", "cxx", "hxx"]
+    _extensions = [".c", ".h", ".cpp", ".cxx", ".hxx", ".ino"]
     _keywords = [
         "auto",
         "bool",

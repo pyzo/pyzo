@@ -836,7 +836,7 @@ class PythonParser(Parser):
 class PythonParser(PythonParser):  # Ambiguous Python parser
     """Parser for either Python2 or Python3, and we do not know which."""
 
-    _extensions = [".py", ".pyw"]
+    _extensions = [".py", ".pyw", ".FCMacro"]
     _shebangKeywords = ["python"]
     # The list of keywords is overridden by the Python2/3 specific parsers
     _keywords = pythonKeywords
