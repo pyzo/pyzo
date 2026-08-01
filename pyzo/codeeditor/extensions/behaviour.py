@@ -482,12 +482,16 @@ class SmartCopyAndPaste:
 
                 # Setting the textcursor might scroll to another place
                 # (e.g. Ctrl+A, Ctrl+C would scroll to the very bottom).
+                # And if the last line is a very long line, Ctrl+A, Ctrl+C
+                # would scroll to the very right.
                 # To prevent this, we store and then restore the position
-                # of the vertical scrollbar
-                sb = self.verticalScrollBar()
-                scrollbarPos = sb.value()
+                # of the scrollbars.
+                vsb = self.verticalScrollBar()
+                hsb = self.horizontalScrollBar()
+                vpos, hpos = vsb.value(), hsb.value()
                 self.setTextCursor(cursor)
-                sb.setValue(scrollbarPos)
+                vsb.setValue(vpos)
+                hsb.setValue(hpos)
 
         # Call our supers copy slot to do the actual copying
         super().copy()
