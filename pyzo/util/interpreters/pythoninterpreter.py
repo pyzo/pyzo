@@ -89,19 +89,28 @@ class PythonInterpreter:
             self._problem = "{!r} is not a valid file.".format(path)
             return ""
 
-        # shell=True prevents loads of command windows popping up on Windows,
-        # but if used on Linux it would enter interpreter mode
+        si = None
+        if sys.platform == "win32":
+            # prevent window popping up on MS Windows
+            si = subprocess.STARTUPINFO()
+            si.dwFlags = subprocess.STARTF_USESHOWWINDOW
+            si.wShowWindow = subprocess.SW_HIDE
+
         cmd = [path, "-V"]
         try:
-            v = subprocess.check_output(
-                cmd, stderr=subprocess.STDOUT, shell=sys.platform.startswith("win")
+            p = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=True,
+                startupinfo=si,
             )
         except Exception as e:  # Don't risk not catching an unforeseen exception ...
             self._problem = str(e)
             return ""
 
         # Extract the version, apply some defensive programming
-        v = v.decode("ascii", "ignore").strip().lower()
+        v = p.stdout.decode("ascii", "ignore").strip().lower()
         if v.startswith("python"):
             v = v.split(" ")[1]
         v = v.split(" ")[0]

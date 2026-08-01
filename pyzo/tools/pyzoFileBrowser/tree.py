@@ -882,19 +882,21 @@ class PopupMenu(pyzo.core.menu.Menu):
     def _openOutsidePyzo(self):
         path = self._item.path()
         if sys.platform.startswith("darwin"):
-            subprocess.call(("open", path))
+            subprocess.run(("open", path))
         elif sys.platform.startswith("win"):
-            if " " in path:  # http://stackoverflow.com/a/72796/2271927
-                subprocess.call(("start", "", path), shell=True)
-            else:
-                subprocess.call(("start", path), shell=True)
+            # prevent console window popping up on MS Windows
+            si = subprocess.STARTUPINFO()
+            si.dwFlags = subprocess.STARTF_USESHOWWINDOW
+            si.wShowWindow = subprocess.SW_HIDE
+            # http://stackoverflow.com/a/72796/2271927
+            subprocess.run(("start", '""', path), startupinfo=si, timeout=5.0)
         elif sys.platform.startswith("linux"):
             # xdg-open is available on all Freedesktop.org compliant distros
             # http://superuser.com/questions/38984/linux-equivalent-command-for-open-command-on-mac-windows
-            subprocess.call(("xdg-open", path))
+            subprocess.run(("xdg-open", path))
 
     def _showInFinder(self):
-        subprocess.call(("open", "-R", self._item.path()))
+        subprocess.run(("open", "-R", self._item.path()))
 
     def _copyPath(self):
         QtWidgets.qApp.clipboard().setText(self._item.path())

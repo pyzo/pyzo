@@ -29,14 +29,14 @@ def open_directory_outside_pyzo(dirpath, filename=None):
         filepath = None
 
     if sys.platform.startswith("darwin"):
-        subprocess.call(("open", dirpath))
+        subprocess.run(("open", dirpath))
     elif sys.platform.startswith("win"):
         if filepath is not None:
-            subprocess.call('explorer.exe /select,"{}"'.format(filepath))
+            subprocess.run(["explorer.exe", "/select,", filepath])
         else:
-            subprocess.call('explorer.exe "{}"'.format(dirpath))
+            subprocess.run(["explorer.exe", dirpath])
     elif sys.platform.startswith("linux"):
-        subprocess.call(("xdg-open", dirpath))
+        subprocess.run(("xdg-open", dirpath))
 
 
 class CalmedFunc:

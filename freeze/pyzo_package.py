@@ -90,7 +90,7 @@ def package_inno_installer():
     with open(innoFile2, "wb") as f:
         f.write(text.encode())
     try:
-        subprocess.check_call([exe, "/Qp", innoFile2], cwd=dist_dir)
+        subprocess.run([exe, "/Qp", innoFile2], cwd=dist_dir, check=True)
     finally:
         os.remove(innoFile2)
 
@@ -113,7 +113,13 @@ def package_dmg():
     cmd.append(dmg_file)
 
     try:
-        subprocess.check_output(cmd, cwd=dist_dir, stderr=subprocess.STDOUT)
+        subprocess.run(
+            cmd,
+            cwd=dist_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=True,
+        )
     except subprocess.CalledProcessError as err:
         print(err.output.decode())  # hopefully helpful
         raise err

@@ -136,16 +136,11 @@ def getCommandFromKernelInfo(info, port):
     if exe.startswith("."):
         exe = os.path.abspath(os.path.join(EXE_DIR, exe))
 
-    # Correct path when it contains spaces
-    if exe.count(" ") and exe[0] != '"':
-        exe = '"{}"'.format(exe)
-
     # Get start script
     startScript = os.path.join(pyzo.pyzoDir, "pyzokernel", "start.py")
-    startScript = '"{}"'.format(startScript)
 
     # Build command
-    command = exe + " " + startScript + " " + str(port)
+    command = [exe, startScript, str(port)]
 
     # Done
     return command
@@ -383,6 +378,13 @@ class KernelBroker:
 
         externalshell_callbackport = info.get("externalshell_callbackport")
 
+        si = None
+        if sys.platform == "win32":
+            # prevent window popping up on MS Windows
+            si = subprocess.STARTUPINFO()
+            si.dwFlags = subprocess.STARTF_USESHOWWINDOW
+            si.wShowWindow = subprocess.SW_HIDE
+
         try:
             # Wrap command in call to 'cmd'?
             if sys.platform.startswith("win"):
@@ -393,22 +395,22 @@ class KernelBroker:
                 # But we only use it if we are sure that cmd is available.
                 # See pyzo issue #240
                 try:
-                    subprocess.check_output('cmd /c "cd"', shell=True)
+                    subprocess.run(["cmd", "/c", "cd"], check=True, startupinfo=si)
                 except (IOError, subprocess.SubprocessError):
                     pass  # Do not use cmd
                 else:
-                    command = 'cmd /c "{}"'.format(command)
+                    command = ["cmd", "/c"] + command
 
             if externalshell_callbackport is None:
                 # Start process
                 self._process = subprocess.Popen(
                     command,
-                    shell=True,
                     env=env,
                     cwd=cwd,
                     stdin=subprocess.PIPE,  # Fixes issue 165
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
+                    startupinfo=si,
                 )
             else:
                 # TCP client

@@ -17,8 +17,10 @@ print(list(sys.modules.keys()))
 
 
 def test_import1():
-    x = subprocess.check_output([sys.executable, "-c", code1])
-    modules = eval(x.decode())
+    p = subprocess.run(
+        [sys.executable, "-c", code1], check=True, stdout=subprocess.PIPE
+    )
+    modules = eval(p.stdout.decode())
     assert isinstance(modules, list)
     assert "sys" in modules
     assert "pyzo" in modules
@@ -38,8 +40,10 @@ print(list(sys.modules.keys()))
 
 
 def test_import2():
-    x = subprocess.check_output([sys.executable, "-c", code2])
-    modules = eval(x.decode())
+    p = subprocess.run(
+        [sys.executable, "-c", code2], check=True, stdout=subprocess.PIPE
+    )
+    modules = eval(p.stdout.decode())
     assert isinstance(modules, list)
     assert "sys" in modules
     assert "pyzo" in modules
