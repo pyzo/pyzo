@@ -884,12 +884,7 @@ class PopupMenu(pyzo.core.menu.Menu):
         if sys.platform.startswith("darwin"):
             subprocess.run(("open", path))
         elif sys.platform.startswith("win"):
-            # prevent console window popping up on MS Windows
-            si = subprocess.STARTUPINFO()
-            si.dwFlags = subprocess.STARTF_USESHOWWINDOW
-            si.wShowWindow = subprocess.SW_HIDE
-            # http://stackoverflow.com/a/72796/2271927
-            subprocess.run(("start", '""', path), startupinfo=si, timeout=5.0)
+            os.startfile(path)
         elif sys.platform.startswith("linux"):
             # xdg-open is available on all Freedesktop.org compliant distros
             # http://superuser.com/questions/38984/linux-equivalent-command-for-open-command-on-mac-windows
