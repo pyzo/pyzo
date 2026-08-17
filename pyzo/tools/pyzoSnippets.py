@@ -314,16 +314,22 @@ class PyzoSnippets(QtWidgets.QWidget):
 
         flatTree = {(): []}
         if os.path.isdir(self._snippetsDir):
-            stack = [()]
-            while stack:
-                treePath = stack.pop()
+            pathsToProcess = [()]
+            while pathsToProcess:
+                treePath = pathsToProcess.pop(0)
                 dirpath = os.path.join(self._snippetsDir, *treePath)
-                for s in os.listdir(dirpath):
+                for s in sorted(os.listdir(dirpath)):
                     fp = os.path.join(dirpath, s)
-                    dirNames = []
                     if os.path.isdir(fp):
                         if _NAME_PATTERN.fullmatch(s):
-                            dirNames.append(s)
+                            treePath2 = treePath + (s,)
+                            if treePath2 in flatTree:
+                                fp = os.path.join(dirpath, s)
+                                print(
+                                    f'WARNING: ignoring folder "{fp}" because there is already a snippet with the same name'
+                                )
+                            else:
+                                pathsToProcess.append(treePath2)
                         else:
                             print(
                                 f'WARNING: ignoring folder "{fp}" because its name is not valid'
@@ -354,16 +360,6 @@ class PyzoSnippets(QtWidgets.QWidget):
                             print(
                                 f'WARNING: ignoring file "{fp}" because name has no ending ".py"'
                             )
-
-                    for s in dirNames:
-                        treePath2 = treePath + (s,)
-                        if treePath2 in flatTree:
-                            fp = os.path.join(dirpath, s)
-                            print(
-                                f'WARNING: ignoring folder "{fp}" because there is already a snippet with the same name'
-                            )
-                        else:
-                            stack.append(treePath2)
 
         self._snippetsFlatTree = flatTree
         self._snippetsNameLookUp = {
