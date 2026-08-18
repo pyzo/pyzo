@@ -1105,6 +1105,9 @@ class EditorTabs(QtWidgets.QWidget):
         # self.restoreEditorState should be called from outside after the paintNow call
         # otherwise the horizontal scrollbar would be set for a too small widget size
 
+        # Enable native close button
+        self._tabs.setTabsClosable(True)
+
     @property
     def _fileDialogOptions(self):
         options = QtWidgets.QFileDialog.Option(0)
