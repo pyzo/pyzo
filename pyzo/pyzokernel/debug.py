@@ -234,12 +234,17 @@ class Debugger(bdb.Bdb):
         bdb.Breakpoint(filename, lineno, temporary, cond, funcname)
 
     # Prevent stopping in bdb code or pyzokernel code
+    #
+    # For Python >= v3.14 we also have to prevent stopping in weakref.py.
+    # Re-running a file with a breakpoint would otherwise first stop in weakref.py.
+    # (introduced via https://github.com/python/cpython/blob/adfe7657a3f1ce5d8384694ed27a40376a18fa6c/Lib/bdb.py)
     def stop_here(self, frame):
         result = bdb.Bdb.stop_here(self, frame)
         if result:
-            return ("bdb.py" not in frame.f_code.co_filename) and (
-                "pyzokernel" not in frame.f_code.co_filename
-            )
+            return os.path.basename(frame.f_code.co_filename) not in (
+                "bdb.py",
+                "weakref.py",
+            ) and ("pyzokernel" not in frame.f_code.co_filename)
 
     def do_clear(self, arg):
         """ """  # this docstring is a single space on purpose
