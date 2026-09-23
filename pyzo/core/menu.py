@@ -3067,7 +3067,7 @@ class KeyMapEditDialog(QtWidgets.QDialog):
         hlayout2 = QtWidgets.QHBoxLayout()
         vlayout.addLayout(hlayout2)
 
-        if sys.platform == "linux":
+        if pyzo.util.is_like_linux():
             # On a US keyboard layout, pressing Shift+2 yields character @.
             # When recording the key combination Ctrl+Shift+2 we get Ctrl+Shift+@ instead.
             # But this shortcut does not work. It must be either Ctrl+Shift+2 or Ctrl+@.

@@ -6,6 +6,18 @@ import subprocess
 from pyzo.qt import QtCore
 
 
+def is_like_linux():
+    return sys.platform.startswith(
+        (
+            "linux",
+            "freebsd",
+            "netbsd",
+            "openbsd",
+            "android",  # for running Pyzo on Android in Termux
+        )
+    )
+
+
 def parse_version_crudely(version_string):
     """extracts the leading number parts of a version string to a tuple
     e.g.: "123.45ew6.7x.dev8" --> (123, 45, 7)
@@ -35,7 +47,7 @@ def open_directory_outside_pyzo(dirpath, filename=None):
             subprocess.run(["explorer.exe", "/select,", filepath])
         else:
             subprocess.run(["explorer.exe", dirpath])
-    elif sys.platform.startswith("linux"):
+    elif is_like_linux():
         subprocess.run(("xdg-open", dirpath))
 
 

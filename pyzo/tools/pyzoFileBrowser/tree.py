@@ -367,7 +367,7 @@ class FileItem(BrowserItem):
             with open(dummy_filename, "wb"):
                 pass
         # Use that file
-        if sys.platform.startswith("linux") and not QtCore.__file__.startswith("/usr/"):
+        if pyzo.util.is_like_linux() and not QtCore.__file__.startswith("/usr/"):
             icon = iconprovider.icon(iconprovider.IconType.File)
         else:
             icon = iconprovider.icon(QtCore.QFileInfo(dummy_filename))
@@ -833,7 +833,7 @@ class PopupMenu(pyzo.core.menu.Menu):
 
         # Create items for open and copy path
         if isinstance(self._item, (FileItem, DirItem)):
-            if isplat("win") or isplat("darwin") or isplat("linux"):
+            if isplat("win") or isplat("darwin") or pyzo.util.is_like_linux():
                 self.addItem(
                     translate("filebrowser", "Open outside Pyzo"),
                     None,
@@ -885,7 +885,7 @@ class PopupMenu(pyzo.core.menu.Menu):
             subprocess.run(("open", path))
         elif sys.platform.startswith("win"):
             os.startfile(path)
-        elif sys.platform.startswith("linux"):
+        elif pyzo.util.is_like_linux():
             # xdg-open is available on all Freedesktop.org compliant distros
             # http://superuser.com/questions/38984/linux-equivalent-command-for-open-command-on-mac-windows
             subprocess.run(("xdg-open", path))

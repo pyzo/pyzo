@@ -143,7 +143,7 @@ def _get_interpreters_posix():
         )
 
     # Look for system Python interpreters
-    for searchpath in ["/usr/bin", "/usr/local/bin", "/opt/local/bin"]:
+    for searchpath in ["/usr/bin", "/usr/local/bin", "/opt/local/bin", "/usr/pkg/bin"]:
         searchpath = os.path.expanduser(searchpath)
 
         # Get files
