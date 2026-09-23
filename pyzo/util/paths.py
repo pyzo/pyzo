@@ -5,6 +5,7 @@
 import os
 import sys
 from pyzo.qt import QtCore
+from ..util import is_like_linux
 
 
 def is_frozen():
@@ -46,7 +47,7 @@ def prepare_appdata_appconfig_dirs():
         elif os.path.isdir(path_dot):
             # existing legacy data and config directory in Linux or macOS
             data_path = config_path = path_dot
-        elif sys.platform == "linux":
+        elif is_like_linux():
             # see https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
             data_path_base = os.getenv("XDG_DATA_HOME", "") or "~/.local/share"
             config_path_base = os.getenv("XDG_CONFIG_HOME", "") or "~/.config"

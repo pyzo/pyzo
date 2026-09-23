@@ -4,6 +4,8 @@ import sys
 import string
 import os.path as op
 
+import pyzo
+
 
 def cleanpath(p):
     return op.normpath(op.expanduser(op.expandvars(p)))
@@ -24,8 +26,11 @@ def getMounts():
         return getDrivesWin()
     elif sys.platform.startswith("darwin"):
         return "/"
-    elif sys.platform.startswith("linux"):
-        return ["/"] + [op.join("/media", e) for e in os.listdir("/media")]
+    elif pyzo.util.is_like_linux():
+        paths = ["/"]
+        if op.isdir("/media"):
+            paths.extend(op.join("/media", e) for e in os.listdir("/media"))
+        return paths
     else:
         return "/"
 

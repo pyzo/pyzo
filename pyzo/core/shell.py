@@ -317,7 +317,7 @@ class BaseShell(BaseTextCtrl):
 
     def mouseReleaseEvent(self, event):
         if event.button() == QtCore.Qt.MouseButton.MiddleButton:
-            if sys.platform == "linux":
+            if pyzo.util.is_like_linux():
                 # On Linux, pasting with the middle button would insert text at the
                 # clicked position, even if this is before the prompt (if readOnly is False
                 # when the current text cursor is at the edit line).
