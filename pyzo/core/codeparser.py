@@ -24,6 +24,14 @@ classPattern = re.compile(
     r"\s*:"  # Optional whitespace and the colon
 )
 
+# The class pattern preamble is used to improve performance and to
+# detect class definitions with superclasses spanning multiple lines.
+classPatternPreamble = re.compile(
+    r"^\s*"  # Optional whitespace
+    r"(cp?def\s+)?"  # Cython preamble + whitespace
+    r"class\s+"  # The class keyword + whitespace
+)
+
 defPattern = re.compile(
     r"^\s*"  # Optional whitespace
     r"(async )?"  # Optional async keyword
@@ -439,32 +447,35 @@ class Parser(threading.Thread):
 
             # Detect classes
             if not foundSomething:
-                classResult = classPattern.search(line)
+                if classPatternPreamble.match(line):
+                    classResult = classPattern.match(line)
+                    if not classResult:
+                        # Get a multiline version (for long class definitions)
+                        multiLine = " ".join(lines[i : i + 32])
+                        classResult = classPattern.match(multiLine)
 
-                if classResult:
-                    foundSomething = True
-                    # Get name
-                    name = classResult.group(2)
-                    item = FictiveObject("class", i, indent, name)
-                    appendToStructure(item)
-                    item.supers = []
-                    item.members = []
-                    # Get inheritance
-                    supers = classResult.group(3)
-                    if supers:
-                        supers = supers[1:-1].split(",")
-                        supers = [tmp.strip() for tmp in supers]
-                        item.supers = [tmp for tmp in supers if tmp]
+                    if classResult:
+                        foundSomething = True
+                        # Get name
+                        name = classResult.group(2)
+                        item = FictiveObject("class", i, indent, name)
+                        appendToStructure(item)
+                        item.supers = []
+                        item.members = []
+                        # Get inheritance
+                        supers = classResult.group(3)
+                        if supers:
+                            supers = supers[1:-1].split(",")
+                            supers = [tmp.strip() for tmp in supers]
+                            item.supers = [tmp for tmp in supers if tmp]
 
             # Detect functions and methods (also multiline)
             if (not foundSomething) and line.count("def "):
                 # Get a multiline version (for long defs)
-                multiLine = line
-                for ii in range(1, 16):
-                    if i + ii < len(lines):
-                        multiLine += " " + lines[i + ii].strip()
+                multiLine = " ".join(lines[i : i + 32])
+
                 # Get result
-                defResult = defPattern.search(multiLine)
+                defResult = defPattern.match(multiLine)
                 if defResult:
                     # Get name
                     name = defResult.group(4)
