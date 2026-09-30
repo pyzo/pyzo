@@ -398,10 +398,17 @@ class Parser(threading.Thread):
 
         # Find objects!
         # type can be: cell, class, def, import, var
-        for i, line in enumerate(lines):
+        numLines = len(lines)
+        iNext = 0
+        while True:
+            i = iNext
+            iNext = i + 1  # will be reassigned later in case of skipping lines
+
             # Should we stop?
-            if self._exit:
+            if self._exit or i >= numLines:
                 break
+
+            line = lines[i]
 
             # Remove indentation
             tmp = line.lstrip()
@@ -451,8 +458,13 @@ class Parser(threading.Thread):
                     classResult = classPattern.match(line)
                     if not classResult:
                         # Get a multiline version (for long class definitions)
-                        multiLine = " ".join(lines[i : i + 32])
-                        classResult = classPattern.match(multiLine)
+                        for numExtraLines in range(1, 32 + 1):
+                            multiLine = " ".join(lines[i : i + 1 + numExtraLines])
+                            classResult = classPattern.match(multiLine)
+                            if classResult:
+                                # skip the extra lines
+                                iNext = i + 1 + numExtraLines
+                                break
 
                     if classResult:
                         foundSomething = True
@@ -471,11 +483,17 @@ class Parser(threading.Thread):
 
             # Detect functions and methods (also multiline)
             if (not foundSomething) and line.count("def "):
-                # Get a multiline version (for long defs)
-                multiLine = " ".join(lines[i : i + 32])
+                defResult = defPattern.match(line)
+                if not defResult:
+                    # Get a multiline version (for long defs)
+                    for numExtraLines in range(1, 32 + 1):
+                        multiLine = " ".join(lines[i : i + 1 + numExtraLines])
+                        defResult = defPattern.match(multiLine)
+                        if defResult:
+                            # skip the extra lines
+                            iNext = i + 1 + numExtraLines
+                            break
 
-                # Get result
-                defResult = defPattern.match(multiLine)
                 if defResult:
                     # Get name
                     name = defResult.group(4)
