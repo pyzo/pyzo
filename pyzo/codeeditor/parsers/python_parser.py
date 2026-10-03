@@ -568,6 +568,7 @@ class PythonParser(Parser):
             tokens = self._findNextToken(line, pos)
             if not tokens:
                 self._promoteMatchCaseSoftKeywords(tokensForLine)
+                self._promoteLazySoftKeywords(tokensForLine)
                 return tokensForLine
             elif isinstance(tokens[-1], StringToken):
                 moreTokens = self._findEndOfString(line, tokens[-1])
@@ -675,6 +676,52 @@ class PythonParser(Parser):
 
         t = tokens[indMatchCase]
         tokens[indMatchCase] = KeywordToken(t.line, t.start, t.end)
+
+    @staticmethod
+    def _promoteLazySoftKeywords(tokens):
+        """promotes identifier token "lazy" to a keyword token if appropriate
+
+        list "tokens" contains the tokens of the current line
+
+        Soft keyword "lazy" was introduced in Python 3.15 via PEP 810.
+        examples for lazy import syntaxes:
+            lazy import json
+            lazy from pathlib import Path
+
+        If "lazy" is a keyword, its token in list "tokens" will be replaced by
+        a keyword token.
+
+        "lazy" will be considered a keyword if the tokens match the following pattern:
+            optional whitespace
+            identifier token "lazy"
+            whitespace
+            "import" or "from" keyword
+            zero or more other tokens
+        """
+
+        if len(tokens) < 3:
+            return
+
+        tokensIter = iter(tokens)
+        indLazyToken = 0
+        token = next(tokensIter)
+        if isinstance(token, NonIdentifierToken) and str(token).isspace():
+            if len(tokens) < 4:
+                return
+            # ignore whitespace before the "lazy" token
+            indLazyToken = 1
+            token = next(tokensIter)
+        if not isinstance(token, IdentifierToken) or str(token) != "lazy":
+            return
+        token = next(tokensIter)
+        if not isinstance(token, NonIdentifierToken) or not str(token).isspace():
+            return
+        token = next(tokensIter)
+        if not isinstance(token, KeywordToken) or str(token) not in ("import", "from"):
+            return
+
+        t = tokens[indLazyToken]
+        tokens[indLazyToken] = KeywordToken(t.line, t.start, t.end)
 
     def _findEndOfString(self, line, token):
         """Find the end of a string. Returns (token, endToken). The first
