@@ -428,5 +428,26 @@ class AutoCompletion:
                 # with this workaround, so we use FocusAboutToChange instead.
                 if self.autocompleteActive():
                     self.autocompleteCancel()
+        else:
+            if event.type() == event.Type.FocusAboutToChange:
+                # It might look silly that we check for the same event type in both branches
+                # of the if-else-clause. But I do this on purpose to emphasize that the
+                # autocompleteCancel is a workaround for two unrelated root causes:
+                # 1) for the USE_WAYLAND_WORKAROUND (see above), and
+                # 2) for the stolen mousePressEvent in class BaseShell:
+                #       In BaseShell.mousePressEvent, there is the code
+                #             if not self.hasFocus():
+                #                 self.setFocus()
+                #                 return
+                #             super().mousePressEvent(event)
+                #       where the early return prevents our AutoCompletion.mousePressEvent
+                #       from being called. So when clicking into the shell widget to give
+                #       it the focus again, a still active autocompletion cannot be
+                #       cancelled. As a workaround, we cancel autocompletion immediately
+                #       when the editor/shell loses focus and not when it later regains
+                #       focus.
+                if self.autocompleteActive():
+                    self.autocompleteCancel()
+
         super().event(event)
         return True
