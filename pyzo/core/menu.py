@@ -2314,7 +2314,11 @@ class RunMenu(Menu):
                     return
                 line = runCursor.block().text().lstrip()
                 runCursor.movePosition(runCursor.MoveOperation.NextBlock)
-                cellName = line.lstrip("#% ").strip()
+                mo = re.fullmatch(r"\s*if\s+[01]\s*:\s*\#\#\s*(.*?)", line)
+                if mo:
+                    cellName = mo[1]
+                else:
+                    cellName = line.lstrip("#% ").strip()
                 break
             if not runCursor.block().previous().isValid():
                 break  # Start of document

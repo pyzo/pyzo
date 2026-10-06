@@ -45,7 +45,7 @@ defPattern = re.compile(
 
 prefixedCellPattern = re.compile(
     r"\s*"  # optional whitespace
-    r"if\s+[01]:"  # "if 0:" or "if 1:"
+    r"if\s+[01]\s*:"  # "if 0:" or "if 1:"
     r"\s*"  # optional whitespace
     r"\#\#\s*(.*?)"  # "## example cell name"
 )
