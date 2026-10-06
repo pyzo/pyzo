@@ -614,9 +614,7 @@ class PyzoIntrospector(yoton.RepChannel):
             return "Error evaluating: " + command
 
 
-##
-if False:
-    ## execute this cell to test signature extraction
+if 0:  ## execute this cell to test signature extraction
     tt = """
     bytes
     int

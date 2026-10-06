@@ -43,6 +43,13 @@ defPattern = re.compile(
     # Leave the colon, easier for cython
 )
 
+prefixedCellPattern = re.compile(
+    r"\s*"  # optional whitespace
+    r"if\s+[01]:"  # "if 0:" or "if 1:"
+    r"\s*"  # optional whitespace
+    r"\#\#\s*(.*?)"  # "## example cell name"
+)
+
 
 class Job:
     """Simple class to represent a job."""
@@ -426,6 +433,13 @@ class Parser(threading.Thread):
                 leafs.append(item)
                 # Next! (we have to put this before the elif stuff below
                 # because it looks like a comment!)
+                continue
+
+            mo = prefixedCellPattern.fullmatch(line)
+            if mo:
+                name = mo[1]
+                item = FictiveObject("cell", i, indent, name)
+                leafs.append(item)
                 continue
 
             # Split in line and comment

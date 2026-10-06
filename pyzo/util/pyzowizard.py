@@ -349,7 +349,9 @@ class RuncodeWizardPage1(BasePyzoWizardPage):
         ),
         translate(
             "wizard",
-            "*Execute cell:* a cell is everything between two lines starting with '##'.",
+            """*Execute cell:* a cell is everything between two lines starting with "<code>##</code>"
+            <br />
+            or "<code># %%</code>" or "<code>if 0:  ##</code>" or "<code>if 1:  ##</code>".""",
         ),
         translate("wizard", "*Execute file:* run all the code in the current file."),
         translate(

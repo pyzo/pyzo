@@ -295,9 +295,7 @@ def parseLine_signature(tokens, paren="("):
     return retvalInvalid  # no open paren preceded by an expression found
 
 
-## examples for running tests:
-if False:
-    ##
+if 0:  ## examples for running tests
     p = pyzo.shells.getCurrentShell().parser()
 
     # tokens = p.parseLine("abc = (myfunc(x + ((y + 2) + otherfunc(1, 2).xy")
