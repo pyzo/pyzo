@@ -7,38 +7,36 @@ and to debug the application from a new shell inside the Pyzo IDE.
 """
 
 
-## Example code for any external Python application that you want to debug
+if 1:  ## Example code for any external Python application that you want to debug
 
-# Run this code in a Python >= v3.14 interpreter and remember the PID.
-# Or get the PID of any running Python application (>= v3.14) that you want to debug.
+    # Run this code in a Python >= v3.14 interpreter and remember the PID.
+    # Or get the PID of any running Python application (>= v3.14) that you want to debug.
 
-import os
-import time
+    import os
+    import time
 
-def myfunc1():
+    def myfunc1():
 
-    def myfunc2():
-        cnt2 = 1
-        while cnt2 < 5:
-            time.sleep(0.2)
-            print('cnt2:', cnt2)
-            cnt2 += 1
+        def myfunc2():
+            cnt2 = 1
+            while cnt2 < 5:
+                time.sleep(0.2)
+                print('cnt2:', cnt2)
+                cnt2 += 1
 
-    print('example Python application')
-    print('this process has PID', os.getpid())
-    cnt1 = 0
-    while True:
-        cnt1 += 1
-        print('cnt1:', cnt1)
-        time.sleep(2.0)
-        myfunc2()
+        print('example Python application')
+        print('this process has PID', os.getpid())
+        cnt1 = 0
+        while True:
+            cnt1 += 1
+            print('cnt1:', cnt1)
+            time.sleep(2.0)
+            myfunc2()
 
-myfunc1()
+    myfunc1()
 
 
-##
-if False:
-##
+if 0:  ## Example code for starting a debug session in Pyzo
 
     # Make sure that the Pyzo IDE is running.
 

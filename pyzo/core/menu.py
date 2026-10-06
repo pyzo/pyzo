@@ -2286,8 +2286,8 @@ class RunMenu(Menu):
         if editor.parser().name().startswith("python"):
 
             def isCursorAtCellComment(cur):
-                # there could be a whitespace token before the cell token
-                for t in cur.block().userData().tokens[:2]:
+                # there could be a whitespace token before the (prefixed) cell token
+                for t in cur.block().userData().tokens[:7]:
                     if isinstance(t, CellCommentToken):
                         return True
                 return False

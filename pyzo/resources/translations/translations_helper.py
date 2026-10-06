@@ -104,9 +104,7 @@ def run_tool(tool_name, args):
 get_pyzo_source_dir()  # calling this to check if this script is executed in the correct place
 
 
-## Step 1:
-if False:
-## create or update the .ts files from Pyzo's Python source code
+if 0:  ## Step 1: create or update the .ts files from Pyzo's Python source code
 
     # TODO: specify the lang_code
     """
@@ -146,9 +144,7 @@ if False:
         os.remove(srcPathsTempFile)
 
 
-## Step 2:
-if False:
-## run the "Qt Linguist" tool and edit the .ts file
+if 0:  ## Step 2: run the "Qt Linguist" tool and edit the .ts file
 
     # TODO: specify the lang_code
     """
@@ -172,9 +168,8 @@ if False:
     run_tool('linguist', args)
 
 
-## Step 3:
-if False:
-## compile the .ts files to .qm files
+if 0:  ## Step 3: compile the .ts files to .qm files
+
     args = ['-fail-on-invalid'] + list_language_ts_files()
     run_tool('lrelease', args)
 

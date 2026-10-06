@@ -569,6 +569,7 @@ class PythonParser(Parser):
             if not tokens:
                 self._promoteMatchCaseSoftKeywords(tokensForLine)
                 self._promoteLazySoftKeywords(tokensForLine)
+                self._promotePrefixedCell(tokensForLine)
                 return tokensForLine
             elif isinstance(tokens[-1], StringToken):
                 moreTokens = self._findEndOfString(line, tokens[-1])
@@ -722,6 +723,54 @@ class PythonParser(Parser):
 
         t = tokens[indLazyToken]
         tokens[indLazyToken] = KeywordToken(t.line, t.start, t.end)
+
+    @staticmethod
+    def _promotePrefixedCell(tokens):
+        """promotes a comment token to a cellcomment token if appropriate
+
+        list "tokens" contains the tokens of the current line
+
+        A prefixed cell is a cell comment that starts with either
+            "if 0:  ##"
+            or
+            "if 1:  ##"
+
+        Extra whitespace is allowed before, after, and in between the parts.
+
+        for example:
+            if 0:  ## filter the signal
+                ...
+
+        When executing a cell, the if condition is ignored.
+        """
+
+        if len(tokens) < 5:
+            return
+
+        tokensIter = iter(tokens)
+        token = next(tokensIter)
+        if isinstance(token, NonIdentifierToken) and str(token).isspace():
+            if len(tokens) < 6:
+                return
+            # ignore whitespace before the "if" token
+            token = next(tokensIter)
+        if not isinstance(token, KeywordToken) or str(token) != "if":
+            return
+        token = next(tokensIter)
+        if not isinstance(token, NonIdentifierToken) or not str(token).isspace():
+            return
+        token = next(tokensIter)
+        if not isinstance(token, NumberToken) or str(token) not in ("0", "1"):
+            return
+        token = next(tokensIter)
+        if not isinstance(token, NonIdentifierToken) or not str(token).strip() == ":":
+            return
+        token = next(tokensIter)
+        if not isinstance(token, CommentToken) or not str(token).startswith("##"):
+            return
+
+        assert token is tokens[-1]
+        tokens[-1] = CellCommentToken(token.line, token.start, token.end)
 
     def _findEndOfString(self, line, token):
         """Find the end of a string. Returns (token, endToken). The first
