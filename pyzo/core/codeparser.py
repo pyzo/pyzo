@@ -440,7 +440,6 @@ class Parser(threading.Thread):
                 name = mo[1]
                 item = FictiveObject("cell", i, indent, name)
                 leafs.append(item)
-                continue
 
             # Split in line and comment
             line, tmp, cmnt = line.partition("#")
