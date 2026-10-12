@@ -9,6 +9,7 @@ Qt = QtCore.Qt
 import keyword
 
 import os
+import sys
 
 """
 On a Ubuntu 22.04 like Linux distribution with Wayland, gdm3 and Qt6, Pyzo crashes
@@ -446,7 +447,10 @@ class AutoCompletion:
                 #       cancelled. As a workaround, we cancel autocompletion immediately
                 #       when the editor/shell loses focus and not when it later regains
                 #       focus.
-                if self.autocompleteActive():
+                #       This workaround does not work with X11 on Linux, so I restrict
+                #       it to MS Windows. In Linux with X11, one could simply set
+                #       USE_WAYLAND_WORKAROUND = True to also get rid of this problem.
+                if sys.platform == "win32" and self.autocompleteActive():
                     self.autocompleteCancel()
 
         super().event(event)
