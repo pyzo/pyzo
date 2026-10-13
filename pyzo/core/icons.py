@@ -463,7 +463,7 @@ class TabToolButtonWithCloseButton(TabToolButton):
         return pm
 
 
-class EditorTabToolButton(TabToolButtonWithCloseButton):
+class EditorTabToolButton(TabToolButton):
     """Button for the tabs of the editors. This is just a
     tight wrapper for the icon.
     """

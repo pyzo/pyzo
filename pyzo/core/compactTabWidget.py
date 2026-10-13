@@ -11,83 +11,15 @@ import sys
 ELLIPSIS = chr(8230)
 
 # Constants for the alignments of tabs
-MIN_NAME_WIDTH = 4
+MIN_NAME_WIDTH = 8
 MAX_NAME_WIDTH = 64
 
 
 ## Define style sheet for the tabs
 
 STYLESHEET = """
-QTabWidget::pane { /* The tab widget frame */
-    border-top: 0px solid #A09B90;
-}
-
-QTabWidget::tab-bar {
-    left: 0px; /* move to the right by x px */
-}
-
-
-/* Style the tab using the tab sub-control. Note that
- it reads QTabBar _not_ QTabWidget */
-QTabBar::tab {
-    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0.0 GRADIENT_UNSEL1,
-                stop: 0.4 GRADIENT_UNSEL2,
-                stop: 1.0 GRADIENT_UNSEL3 );
-    border: 1px solid #A09B90;
-    border-bottom-color: #DAD5CC; /* same as the pane color */
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    min-width: 5ex;
-    padding-bottom: PADDING_BOTTOMpx;
-    padding-top: PADDING_TOPpx;
-    padding-left: PADDING_LEFTpx;
-    padding-right: PADDING_RIGHTpx;
-    margin-right: -1px; /* "combine" borders */
-}
-QTabBar::tab:last {
-    margin-right: 0px;
-}
-
-/* Style the selected tab, hoovered tab, and other tabs. */
-QTabBar::tab:hover {
-    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0.0 GRADIENT_SEL1,
-                stop: 0.4 GRADIENT_SEL2,
-                stop: 1.0 GRADIENT_SEL3 );
-}
-QTabBar::tab:selected {
-    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                stop: 0.0 GRADIENT_TOP_SELECTED,
-                stop: 0.12 GRADIENT_TOP_SELECTED,
-                stop: 0.120001 GRADIENT_SEL1,
-                stop: 0.4 GRADIENT_SEL2,
-                stop: 1.0 GRADIENT_SEL3 );
-}
-
-QTabBar::tab:selected {
-    border-width: 1px;
-    border-bottom-width: 0px;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    border-color: BORDER_COLOR_SELECTED;
-}
-
-QTabBar::tab:!selected {
-    margin-top: 3px; /* make non-selected tabs look smaller */
-}
-
 """
-
 STYLESHEET_REPLACEMENTS = [  # name, dark, light
-    ("BORDER_COLOR_SELECTED", "#ddd", "#333"),
-    ("GRADIENT_TOP_SELECTED", "rgba(0,255,255,128)", "rgba(0,0,128,128)"),
-    ("GRADIENT_UNSEL1", "rgba(0,0,0,128)", "rgba(220,220,220,128)"),
-    ("GRADIENT_UNSEL2", "rgba(140,140,140,128)", "rgba(200,200,200,128)"),
-    ("GRADIENT_UNSEL3", "rgba(160,160,160,128)", "rgba(100,100,100,128)"),
-    ("GRADIENT_SEL1", "rgba(0,0,0,128)", "rgba(245,250,255,128)"),
-    ("GRADIENT_SEL2", "rgba(50,50,50,128)", "rgba(210,210,210,128)"),
-    ("GRADIENT_SEL3", "rgba(100,100,100,128)", "rgba(200,200,200,128)"),
 ]
 
 
