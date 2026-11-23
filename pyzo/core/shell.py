@@ -1180,7 +1180,7 @@ class PythonShell(BaseShell):
     by connecting to a remote process that runs a Python interpreter.
     """
 
-    # Emits when the status string has changed or when receiving a new prompt
+    # Emits when the interpreter status has changed or when receiving a new prompt
     stateChanged = QtCore.Signal(BaseShell)
 
     # Emits when the debug status is changed
@@ -1240,7 +1240,7 @@ class PythonShell(BaseShell):
         self.setReadOnly(False)
 
         # Variables to store state, python version, builtins and keywords
-        self._state = ""
+        self._state = {}
         self._debugState = {}
         self._version = ""
         self._builtins = []
@@ -1282,7 +1282,9 @@ class PythonShell(BaseShell):
         self._ctrl_broker = yoton.PubChannel(ct, "ctrl-broker")
 
         # Create status channels
-        self._stat_interpreter = yoton.StateChannel(ct, "stat-interpreter")
+        self._stat_interpreter = yoton.StateChannel(
+            ct, "stat-interpreter", yoton.OBJECT
+        )
         self._stat_cd = yoton.StateChannel(ct, "stat-cd")
         self._stat_debug = yoton.StateChannel(ct, "stat-debug", yoton.OBJECT)
         self._stat_startup = yoton.StateChannel(ct, "stat-startup", yoton.OBJECT)
@@ -1692,7 +1694,7 @@ class PythonShell(BaseShell):
 
         # Update status
         state = self._stat_interpreter.recv()
-        if state != self._state:
+        if state is not None and state != self._state:
             self._state = state
             self.stateChanged.emit(self)
 

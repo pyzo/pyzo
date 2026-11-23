@@ -38,7 +38,7 @@ def shellTitle(shell, moreinfo=False):
         guiText = "with " + guiText + " gui"
 
     # Build state text
-    stateText = shell._state or ""
+    stateText = shell._state.get("state", "")
 
     # Build text for elapsed time
     elapsed = int(time.time() - shell._start_time)
@@ -174,7 +174,7 @@ class ShellStackWidget(QtWidgets.QWidget):
 
         if shell is self.getCurrentShell():  # can be None
             # Update application icon
-            if shell and shell._state in ["Busy"]:
+            if shell and shell._state.get("state") == "Busy":
                 pyzo.main.setWindowIcon(pyzo.iconRunning)
             else:
                 pyzo.main.setWindowIcon(pyzo.icon)
@@ -343,7 +343,7 @@ class ShellControl(QtWidgets.QToolButton):
 
         # Is the shell being updated the current?
         if currentShell is shellToUpdate and currentShell is not None:
-            self._iconMaker.updateIcon(currentShell._state)
+            self._iconMaker.updateIcon(currentShell._state.get("state", ""))
             self.setText(shellTitle(currentShell))
         elif currentShell is None:
             self._iconMaker.updateIcon("")
