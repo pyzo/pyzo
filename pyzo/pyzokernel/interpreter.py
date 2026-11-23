@@ -480,6 +480,32 @@ class PyzoInterpreter:
             else:
                 os.chdir(os.path.expanduser("~"))  # home dir
 
+    def _send_interpreter_state(self, state_string):
+        # We only want to send a new state when the state_string ("Ready", "Busy", etc.)
+        # changes. The shell from the Pyzo GUI should then detect transitions from
+        # "Ready" to "Busy" to "Ready" again, etc. so that, for example, the "Workspace"
+        # tool and the "Expression viewer" are signalled to update variables.
+        # The problem is that in the debug mode, when stopped at a breakpoint, and
+        # continuing execution till the next breakpoint, the state changes quickly from
+        # "Debug" to "Busy" and then to "Debug" again. And the shell from the Pyzo GUI
+        # sometimes misses that "Busy" state because it is too short/fast. The shell then
+        # does not signal a state change to the "Workspace" tool to update variables.
+        # To prevent this, every state change gets a timestamp. Normally the yoton
+        # StateChannel prevents state updates from being sent, if the message is unchanged.
+        # But the timestamp always changes. So we have to do this check without the
+        # timestamp before passing the data to the StateChannel object.
+        # When the shell from the GUI misses the "Busy" between the two "Debug" states
+        # again, the two "Debug" states now have different timestamps, so it will now emit
+        # a state changed signal and update the variables in the "Workspace" tool.
+        prev_msg = self.context._stat_interpreter._current_message
+        if isinstance(prev_msg, dict) and prev_msg.get("state") == state_string:
+            return
+        state = {
+            "timestamp": time.time(),
+            "state": state_string,
+        }
+        self.context._stat_interpreter.send(state)
+
     def _run_startup_code(self, startup_info):
         """Execute the startup code or script."""
 
@@ -501,12 +527,12 @@ class PyzoInterpreter:
             scriptBefore = "\n".join(linesBefore)
             self._codeToRunOnStartup = "\n".join(linesAfter)
             if scriptBefore.strip():  # don't trigger when only empty lines
-                self.context._stat_interpreter.send("Busy")
+                self._send_interpreter_state("Busy")
                 msg = {"source": scriptBefore, "fname": "<startup>", "lineno": 0}
                 self.runlargecode(msg, True)
         elif script and os.path.isfile(script):
             # Run script
-            self.context._stat_interpreter.send("Busy")
+            self._send_interpreter_state("Busy")
             self.runfile(script)
         else:
             # Nothing to run
@@ -659,11 +685,11 @@ class PyzoInterpreter:
         # Run startup code/script inside the loop (only the first time)
         # so that keyboard interrupt will work
         if self._codeToRunOnStartup:
-            self.context._stat_interpreter.send("Busy")
+            self._send_interpreter_state("Busy")
             self._codeToRunOnStartup, tmp = None, self._codeToRunOnStartup
             self._runlines(tmp, filename="<startup_after_gui>", symbol="exec")
         if self._scriptToRunOnStartup:
-            self.context._stat_interpreter.send("Busy")
+            self._send_interpreter_state("Busy")
             self._scriptToRunOnStartup, tmp = None, self._scriptToRunOnStartup
             self.runfile(tmp)
 
@@ -692,11 +718,11 @@ class PyzoInterpreter:
             # when the state is different. Note that the kernelbroker
             # can also set the state ("Very busy", "Busy", "Dead")
             if self._dbFrames:
-                self.context._stat_interpreter.send("Debug")
+                self._send_interpreter_state("Debug")
             elif self.more:
-                self.context._stat_interpreter.send("More")
+                self._send_interpreter_state("More")
             else:
-                self.context._stat_interpreter.send("Ready")
+                self._send_interpreter_state("Ready")
             try:
                 cwd = os.getcwd()
             except Exception:
@@ -727,7 +753,7 @@ class PyzoInterpreter:
             if line1:
                 # Notify what we're doing
                 self.context._strm_echo.send(line1)
-                self.context._stat_interpreter.send("Busy")
+                self._send_interpreter_state("Busy")
                 self.newPrompt = True
                 # Convert command
                 # (only a few magics are supported if IPython is active)
@@ -746,7 +772,7 @@ class PyzoInterpreter:
             if msg:
                 # Notify what we're doing
                 # (runlargecode() sends on stdin-echo)
-                self.context._stat_interpreter.send("Busy")
+                self._send_interpreter_state("Busy")
                 self.newPrompt = True
                 # Execute code
                 self.runlargecode(msg)

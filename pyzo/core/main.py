@@ -383,7 +383,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             infoTexts = []
             busyStates = ("Busy", "Very busy", "Debug")
-            if any(shell._state in busyStates for shell in pyzo.shells):
+            if any(shell._state.get("state") in busyStates for shell in pyzo.shells):
                 infoTexts.append(
                     translate("main", "At least one shell is still executing code.")
                 )

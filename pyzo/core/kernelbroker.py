@@ -297,7 +297,9 @@ class KernelBroker:
         self._stat_startup = yoton.StateChannel(ct, "stat-startup", yoton.OBJECT)
 
         # We use the stat-interpreter to set the status to dead when kernel dies
-        self._stat_interpreter = yoton.StateChannel(ct, "stat-interpreter")
+        self._stat_interpreter = yoton.StateChannel(
+            ct, "stat-interpreter", yoton.OBJECT
+        )
 
         # Create control channel so we can interrupt and terminate the kernel
         self._reqp_control = yoton.ReqChannel(ct, "reqp-control")
@@ -465,14 +467,21 @@ class KernelBroker:
 
     ## Callbacks
 
+    def _sendInterpreterState(self, stateString):
+        state = {
+            "timestamp": time.time(),
+            "state": stateString,
+        }
+        self._stat_interpreter.send(state)
+
     def _onKernelTimedOut(self, c, timedout):
         """The kernel timed out (i.e. did not send heartbeat messages for
         a while. It is probably running extension code.
         """
         if timedout:
-            self._stat_interpreter.send("Very busy")
+            self._sendInterpreterState("Very busy")
         else:
-            self._stat_interpreter.send("Busy")
+            self._sendInterpreterState("Busy")
 
     def _onKernelConnectionClose(self, c, why):
         """Connection with kernel lost. Tell clients why."""
@@ -516,7 +525,7 @@ class KernelBroker:
             self._strm_broker.send(total_msg)
             # Empty prompt and signal dead
             self._strm_prompt.send("\b")
-            self._stat_interpreter.send("Dead")
+            self._sendInterpreterState("Dead")
             self._context.flush()
 
         # Cleanup (get rid of kernel process references)
