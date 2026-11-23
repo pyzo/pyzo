@@ -18,10 +18,10 @@ jobs:
       fail-fast: false
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.9
+    - name: Set up Python 3.14
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.14'
     - name: Install dev dependencies
       run: |
           python -m pip install --upgrade pip
@@ -75,9 +75,6 @@ jobs:
           - os: ubuntu-latest
             pyversion: '3.10'
             qtlib: pyqt5
-          - os: ubuntu-latest
-            pyversion: '3.9'
-            qtlib: pyside2
           # ---
           - os: macos-latest
             pyversion: '3.14'
